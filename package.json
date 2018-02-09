@@ -1,0 +1,15 @@
+{
+  "name": "fictional-octo-disco",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:erickzhao/fictional-octo-disco.git",
+  "author": "erick <erick@hotmail.ca>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2",
+    "password-generator": "^2.2.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}
