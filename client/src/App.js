@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import Search from './Search';
 
 class App extends Component {
   // Initialize state
@@ -17,6 +18,7 @@ class App extends Component {
     return (
       <div className="App">
         <h1>fictional-octo-disco</h1>
+        <Search subreddit={this.state.subreddit} />
       </div>
     );
   }
