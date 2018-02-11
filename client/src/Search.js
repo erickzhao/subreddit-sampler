@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './Search.css';
+import Button from './Button';
 
 class Search extends Component {
 
@@ -23,10 +24,10 @@ class Search extends Component {
       <div>
         <form onSubmit={this.handleSubmit}>
           <label>
-          Subreddit:
+          Search for /r/ 
             <input type="text" value={this.state.value} onChange={this.handleChange}/>
+            <Button label="GO"/>
           </label>
-          <button type="submit">Submit</button>
         </form>
       </div>
     )
