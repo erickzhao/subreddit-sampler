@@ -1,15 +1,31 @@
 import React, { Component } from 'react';
 import './App.css';
 import Search from './Search';
+import Return from './Return';
 
 class App extends Component {
+
   // Initialize state
-  state = {
-    subreddit: null
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      subreddit: null,
+      isSearched: false
+    }
   }
 
-  // Fetch passwords after first mount
-  componentDidMount() {
+  handleSearch = (event) => {
+    this.setState({isSearched: true});
+    event.preventDefault();
+  }
+
+  handleChangeInSearch = (event) => {
+    this.setState({subreddit: event.target.value});
+  }
+
+  handleReturn = (event) => {
+    this.setState({subreddit: null, isSearched: false});
   }
 
   render() {
@@ -18,7 +34,10 @@ class App extends Component {
     return (
       <div className="App">
         <h1>fictional-octo-disco</h1>
-        <Search subreddit={this.state.subreddit} />
+        {
+          !this.state.isSearched ? <Search subreddit={this.state.subreddit} onChange = {this.handleChangeInSearch} onSearch={this.handleSearch}/>
+          : <Return subreddit={this.state.subreddit} onReturn={this.handleReturn}/>
+        }
       </div>
     );
   }
