@@ -7,23 +7,32 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    if (!sessionStorage.isAuthenticated) {
-      sessionStorage.isAuthenticated = false;
-    }
-
     this.state = {
-      isAuthenticated: JSON.parse(sessionStorage.isAuthenticated)
+      tokens: {}
     }
   }
 
+  componentDidMount() {
+    const hash = window.location.hash
+    .substring(1)
+    .split('&')
+    .reduce((acc, val) => {
+      if (val) {
+        var parts = val.split('=');
+        acc[parts[0]] = decodeURIComponent(parts[1]);
+      }
+      return acc;
+    }, {});
+    window.location.hash = '';
+    this.setState({tokens: hash});
+  }
+
   handleAuthenticate = () => {
-    fetch('/api/authorize')
+    fetch('/authorize')
       .then((data) => {
         return data.json();
       })
       .then((data) => {
-        sessionStorage.isAuthenticated = JSON.stringify(true);
-        console.log(data.url)
         window.location = data.url;
       })
       .catch((e) => {
@@ -32,14 +41,14 @@ class App extends Component {
   }
 
   render() {
-    const { isAuthenticated } = this.state;
+    const { tokens } = this.state;
 
     return (
       <div className="App">
         <h1>fictional-octo-disco</h1>
         {
-          isAuthenticated ?
-          <SearchWrapper/> :
+          Object.keys(tokens).length ?
+          <SearchWrapper token={tokens['access_token']}/> :
           <Authenticator onAuthenticate={this.handleAuthenticate}/>
         }
       </div>

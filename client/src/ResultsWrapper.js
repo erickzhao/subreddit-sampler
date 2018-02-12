@@ -11,7 +11,6 @@ class ResultsWrapper extends Component {
   }
 
   componentDidMount() {
-    console.log(this.props.subreddit);
     this.fetchTracks(this.props.subreddit)
       .then((res) => {
         this.setState({isLoaded: true, tracks: res});
@@ -22,7 +21,12 @@ class ResultsWrapper extends Component {
   }
 
   fetchTracks = (sub) => {
-    return fetch(`/api/r/${sub}`)
+    return fetch(`/api/r/${sub}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${this.props.token}`
+      },
+    })
     .then(res => res.json())
     .catch((e) => {
       console.error(e);

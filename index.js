@@ -20,32 +20,34 @@ let spotifyId = '';
 
 app.get('/callback', async (req, res) => {
   const code = req.query.code; // Read the authorization code from the query parameters
+  let token;
   try {
-    const token = await spotifyApi.authorizationCodeGrant(code);
+    token = await spotifyApi.authorizationCodeGrant(code);
 
     console.log('The token expires in ' + token.body['expires_in']);
     console.log('The access token is ' + token.body['access_token']);
     console.log('The refresh token is ' + token.body['refresh_token']);
 
-    // Set the access token on the API object to use it in later calls
-    spotifyApi.setAccessToken(token.body['access_token']);
-    spotifyApi.setRefreshToken(token.body['refresh_token']);
   } catch(e) {
     console.error(e);
   }
-
-  res.redirect('/');
+  if (token) {
+    res.redirect(`/#access_token=${token.body['access_token']}&refresh_token=${token.body['refresh_token']}`);
+  } else {
+    res.redirect('/');
+  }
+  
 });
 
-// set all routes to /api/
-const router = express.Router();
-
-router.get('/authorize', (req, res) => {
+app.get('/authorize', (req, res) => {
   const scopes = ['user-read-private', 'playlist-modify-public'];
 
   authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.json({url: authorizeURL});
 })
+
+// set all routes to /api/
+const router = express.Router();
 
 router.get('/r/:sub', async (req, res) => {
   const LENGTH = 20;
@@ -69,9 +71,13 @@ router.get('/r/:sub', async (req, res) => {
     }
   }
 
+  const userSpotifyApi = new SpotifyWebApi();
+  console.log(req.headers['authorization'].split(' ')[1]);
+  userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
+
   try {
     const spotifyTracks = await Promise.all(
-      posts.map(p => spotifyApi.searchTracks(`${p[0]} ${p[1]}`))
+      posts.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
     );
     const trackIds = spotifyTracks
       .map(t => (t.body.tracks))
@@ -80,9 +86,9 @@ router.get('/r/:sub', async (req, res) => {
       .filter(t => t.type === 'track')
       .map(t => t.uri);
       
-    const id = (await spotifyApi.getMe()).body.id;
-    const playlist = await spotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
-    await spotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
+    const id = (await userSpotifyApi.getMe()).body.id;
+    const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
+    await userSpotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
   } catch (e) {
     console.error(e);
   }

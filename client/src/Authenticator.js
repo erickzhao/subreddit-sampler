@@ -1,8 +1,6 @@
 import React from 'react';
 import Button from './Button';
 
-
-
 const Authenticator = ({onAuthenticate}) => {
   return (
     <div>

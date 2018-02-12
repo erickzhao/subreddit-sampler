@@ -29,6 +29,7 @@ class SearchWrapper extends Component {
 
   render() {
     const { subreddit, isSearched } = this.state;
+    const { token } = this.props;
 
     return (
       <div>
@@ -38,7 +39,7 @@ class SearchWrapper extends Component {
           :
           <div>
             <Return subreddit={subreddit} onReturn={this.handleReturn}/>
-            <ResultsWrapper subreddit={subreddit}/>
+            <ResultsWrapper token={token} subreddit={subreddit}/>
           </div>
         }
       </div>
