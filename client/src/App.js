@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import Search from './Search';
 import Return from './Return';
+import ResultsWrapper from './ResultsWrapper';
 
 class App extends Component {
 
@@ -35,8 +36,13 @@ class App extends Component {
       <div className="App">
         <h1>fictional-octo-disco</h1>
         {
-          !this.state.isSearched ? <Search subreddit={this.state.subreddit} onChange = {this.handleChangeInSearch} onSearch={this.handleSearch}/>
-          : <Return subreddit={this.state.subreddit} onReturn={this.handleReturn}/>
+          !this.state.isSearched ? 
+          <Search subreddit={this.state.subreddit} onChange={this.handleChangeInSearch} onSearch={this.handleSearch}/>
+          :
+          <div>
+            <Return subreddit={this.state.subreddit} onReturn={this.handleReturn}/>
+            <ResultsWrapper subreddit={this.state.subreddit}/>
+          </div>
         }
       </div>
     );
