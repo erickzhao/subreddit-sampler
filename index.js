@@ -14,10 +14,22 @@ const app = express();
 const router = express.Router();
 
 router.get('/tracks', async (req, res) => {
+  const LENGTH = 30;
+  let after;
+  let posts = [];
   await setRedditToken();
 
-  const posts = await getSubredditData('music');
-  return res.json(filterPosts(posts));
+  while (posts.length < LENGTH) {
+    try {
+      const data = await getSubredditData('hiphopheads', after);
+      const newPosts = filterPosts(data.children);
+      posts.push(...newPosts);
+      after = data.after;
+    } catch(e) {
+      console.error(e);
+    }
+  }
+  return res.json(posts);
 });
 
 const setRedditToken = async () => {
@@ -41,11 +53,11 @@ const setRedditToken = async () => {
   process.env.REDDIT_TOKEN = token && token.data && token.data.access_token;
 }
 
-const getSubredditData = async (sub) => {
+const getSubredditData = async (sub, after) => {
   let data;
   try {
     data = await axios({
-      url: `https://oauth.reddit.com/r/${sub}/top`,
+      url: `https://oauth.reddit.com/r/${sub}/top?limit=100&t=year&after=${after}`,
       method: 'get',
       headers: {
         'Authorization': `Bearer ${process.env.REDDIT_TOKEN}`
@@ -54,19 +66,20 @@ const getSubredditData = async (sub) => {
   } catch(e) {
     console.error(e);
   }
-  return data.data.data.children;
+  return data.data.data;
 }
 
 const filterPosts = (posts) => {
-
   // store whitelisted domains in object for O(1) access
   const DOMAINS = {
     'youtube.com': true,
-    'soundcloud.com': true
+    'soundcloud.com': true,
+    'youtu.be': true
   }
   return posts
     .filter(post => DOMAINS[post.data.domain])
-    .map(post => getArtistTitle(post.data.title))
+    .map(post => getArtistTitle(post.data.title)) // parse artist/title
+    .filter(post => post); // remove artist/title not found links
 }
 
 app.use('/api', router);
