@@ -78,11 +78,11 @@ router.get('/r/:sub', async (req, res) => {
       .filter(t => t.total > 0)
       .map(t => _.head(t.items))
       .filter(t => t.type === 'track')
-      .map(t => t.id);
-
+      .map(t => t.uri);
+      
     const id = (await spotifyApi.getMe()).body.id;
-    const playlist = await spotifyApi.createPlaylist(id, 'CREATED VIA API', {public: true});
-
+    const playlist = await spotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
+    await spotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
   } catch (e) {
     console.error(e);
   }
