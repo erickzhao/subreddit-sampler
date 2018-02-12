@@ -6,10 +6,15 @@
   "author": "erick <erick@hotmail.ca>",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.17.1",
     "express": "^4.16.2",
     "querystring": "^0.2.0"
   },
+  "devDependencies": {
+    "nodemon": "^1.14.12"
+  },
   "scripts": {
+    "start:dev": "nodemon index.js",
     "start": "node index.js",
     "heroku-postbuild": "cd client && yarn --production=false && yarn run build"
   }
