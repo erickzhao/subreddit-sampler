@@ -13,15 +13,20 @@ const app = express();
 // set all routes to /api/
 const router = express.Router();
 
-router.get('/tracks', async (req, res) => {
-  const LENGTH = 30;
+router.get('/r/:sub', async (req, res) => {
+  const LENGTH = req.query.length*2 || 50;
   let after;
   let posts = [];
   await setRedditToken();
 
+  // no subreddit, return empty array
+  if (!req.params.sub) {
+    return res.json(posts);
+  }
+
   while (posts.length < LENGTH) {
     try {
-      const data = await getSubredditData('hiphopheads', after);
+      const data = await getSubredditData(req.params.sub, after);
       const newPosts = filterPosts(data.children);
       posts.push(...newPosts);
       after = data.after;
@@ -54,6 +59,7 @@ const setRedditToken = async () => {
 }
 
 const getSubredditData = async (sub, after) => {
+
   let data;
   try {
     data = await axios({
@@ -89,9 +95,9 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname + '/client/build/index.html'));
-});
+// app.get('*', (req, res) => {
+//   // res.sendFile(path.join(__dirname + '/client/build/index.html'));
+// });
 
 const port = process.env.PORT || 5000;
 app.listen(port);
