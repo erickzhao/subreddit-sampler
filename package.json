@@ -9,6 +9,8 @@
     "axios": "^0.17.1",
     "dotenv": "^5.0.0",
     "express": "^4.16.2",
+    "get-artist-title": "^1.0.0",
+    "lodash": "^4.17.5",
     "querystring": "^0.2.0"
   },
   "devDependencies": {
