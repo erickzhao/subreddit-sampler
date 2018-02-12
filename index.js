@@ -20,35 +20,35 @@ let spotifyId = '';
 
 app.get('/callback', async (req, res) => {
   const code = req.query.code; // Read the authorization code from the query parameters
-  spotifyApi.authorizationCodeGrant(code)
-    .then((data) => {
-      console.log('The token expires in ' + data.body['expires_in']);
-      console.log('The access token is ' + data.body['access_token']);
-      console.log('The refresh token is ' + data.body['refresh_token']);
+  try {
+    const token = await spotifyApi.authorizationCodeGrant(code);
 
-      // Set the access token on the API object to use it in later calls
-      spotifyApi.setAccessToken(data.body['access_token']);
-      spotifyApi.setRefreshToken(data.body['refresh_token']);
-    })
-    .catch((e) => {
-      console.error(e);
-    });
+    console.log('The token expires in ' + token.body['expires_in']);
+    console.log('The access token is ' + token.body['access_token']);
+    console.log('The refresh token is ' + token.body['refresh_token']);
+
+    // Set the access token on the API object to use it in later calls
+    spotifyApi.setAccessToken(token.body['access_token']);
+    spotifyApi.setRefreshToken(token.body['refresh_token']);
+  } catch(e) {
+    console.error(e);
+  }
+
+  res.redirect('/');
 });
 
 // set all routes to /api/
 const router = express.Router();
 
-router.get('/spotify', async (req, res) => {
-  console.log('pinged spotify');
+router.get('/authorize', (req, res) => {
   const scopes = ['user-read-private', 'playlist-modify-public'];
 
   authorizeURL = spotifyApi.createAuthorizeURL(scopes);
-  console.log(authorizeURL);
   res.json({url: authorizeURL});
 })
 
 router.get('/r/:sub', async (req, res) => {
-  const LENGTH = req.query.length*2 || 50;
+  const LENGTH = 20;
   let after;
   let posts = [];
   await setRedditToken();
@@ -68,6 +68,25 @@ router.get('/r/:sub', async (req, res) => {
       console.error(e);
     }
   }
+
+  try {
+    const spotifyTracks = await Promise.all(
+      posts.map(p => spotifyApi.searchTracks(`${p[0]} ${p[1]}`))
+    );
+    const trackIds = spotifyTracks
+      .map(t => (t.body.tracks))
+      .filter(t => t.total > 0)
+      .map(t => _.head(t.items))
+      .filter(t => t.type === 'track')
+      .map(t => t.id);
+
+    const id = (await spotifyApi.getMe()).body.id;
+    const playlist = await spotifyApi.createPlaylist(id, 'CREATED VIA API', {public: true});
+
+  } catch (e) {
+    console.error(e);
+  }
+
   return res.json(posts);
 });
 
@@ -93,7 +112,6 @@ const setRedditToken = async () => {
 }
 
 const getSubredditData = async (sub, after) => {
-
   let data;
   try {
     data = await axios({
