@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const path = require('path');
 const axios = require('axios');
+const getArtistTitle = require('get-artist-title');
+const _ = require('lodash');
 
 // grab super secret stuff from .env file
 dotenv.config();
@@ -13,14 +15,13 @@ const router = express.Router();
 
 router.get('/tracks', async (req, res) => {
   await setRedditToken();
-  return res.json({
-    tracks: [1, 2, 3, 4, 6]
-  });
+
+  const posts = await getSubredditData('music');
+  return res.json(filterPosts(posts));
 });
 
 const setRedditToken = async () => {
   let token;
-
   try {
     token = await axios({
       url: 'https://www.reddit.com/api/v1/access_token',
@@ -37,8 +38,35 @@ const setRedditToken = async () => {
   } catch(e) {
     console.error(e);
   }
-  
   process.env.REDDIT_TOKEN = token && token.data && token.data.access_token;
+}
+
+const getSubredditData = async (sub) => {
+  let data;
+  try {
+    data = await axios({
+      url: `https://oauth.reddit.com/r/${sub}/top`,
+      method: 'get',
+      headers: {
+        'Authorization': `Bearer ${process.env.REDDIT_TOKEN}`
+      }
+    });
+  } catch(e) {
+    console.error(e);
+  }
+  return data.data.data.children;
+}
+
+const filterPosts = (posts) => {
+
+  // store whitelisted domains in object for O(1) access
+  const DOMAINS = {
+    'youtube.com': true,
+    'soundcloud.com': true
+  }
+  return posts
+    .filter(post => DOMAINS[post.data.domain])
+    .map(post => getArtistTitle(post.data.title))
 }
 
 app.use('/api', router);
