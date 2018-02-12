@@ -7,23 +7,23 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    if (localStorage.isAuthenticated === undefined) {
-      localStorage.isAuthenticated = false;
+    if (!sessionStorage.isAuthenticated) {
+      sessionStorage.isAuthenticated = false;
     }
 
     this.state = {
-      isAuthenticated: JSON.parse(localStorage.isAuthenticated)
+      isAuthenticated: JSON.parse(sessionStorage.isAuthenticated)
     }
   }
 
   handleAuthenticate = () => {
-    fetch('/api/spotify')
+    fetch('/api/authorize')
       .then((data) => {
         return data.json();
       })
       .then((data) => {
-        console.log(data);
-        localStorage.isAuthenticated = JSON.stringify(true);
+        sessionStorage.isAuthenticated = JSON.stringify(true);
+        console.log(data.url)
         window.location = data.url;
       })
       .catch((e) => {
