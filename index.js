@@ -16,9 +16,10 @@ const spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTIFY_SECRET
 });
 
+let spotifyId = '';
+
 app.get('/callback', async (req, res) => {
   const code = req.query.code; // Read the authorization code from the query parameters
-
   spotifyApi.authorizationCodeGrant(code)
     .then((data) => {
       console.log('The token expires in ' + data.body['expires_in']);
@@ -28,8 +29,6 @@ app.get('/callback', async (req, res) => {
       // Set the access token on the API object to use it in later calls
       spotifyApi.setAccessToken(data.body['access_token']);
       spotifyApi.setRefreshToken(data.body['refresh_token']);
-
-      res.redirect('/');
     })
     .catch((e) => {
       console.error(e);
@@ -40,12 +39,13 @@ app.get('/callback', async (req, res) => {
 const router = express.Router();
 
 router.get('/spotify', async (req, res) => {
+  console.log('pinged spotify');
   const scopes = ['user-read-private', 'playlist-modify-public'];
 
   authorizeURL = spotifyApi.createAuthorizeURL(scopes);
-  res.redirect(authorizeURL);
+  console.log(authorizeURL);
+  res.json({url: authorizeURL});
 })
-
 
 router.get('/r/:sub', async (req, res) => {
   const LENGTH = req.query.length*2 || 50;

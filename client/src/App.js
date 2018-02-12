@@ -18,8 +18,13 @@ class App extends Component {
 
   handleAuthenticate = () => {
     fetch('/api/spotify')
-      .then(() => {
+      .then((data) => {
+        return data.json();
+      })
+      .then((data) => {
+        console.log(data);
         localStorage.isAuthenticated = JSON.stringify(true);
+        window.location = data.url;
       })
       .catch((e) => {
         console.error(e);
