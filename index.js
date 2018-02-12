@@ -3,15 +3,49 @@ const dotenv = require('dotenv');
 const path = require('path');
 const axios = require('axios');
 const getArtistTitle = require('get-artist-title');
+const SpotifyWebApi = require('spotify-web-api-node');
 const _ = require('lodash');
 
 // grab super secret stuff from .env file
 dotenv.config();
 
 const app = express();
+const spotifyApi = new SpotifyWebApi({
+  redirectUri : 'http://localhost:5000/callback',
+  clientId : process.env.SPOTIFY_CLIENT,
+  clientSecret: process.env.SPOTIFY_SECRET
+});
+
+app.get('/callback', async (req, res) => {
+  const code = req.query.code; // Read the authorization code from the query parameters
+
+  spotifyApi.authorizationCodeGrant(code)
+    .then((data) => {
+      console.log('The token expires in ' + data.body['expires_in']);
+      console.log('The access token is ' + data.body['access_token']);
+      console.log('The refresh token is ' + data.body['refresh_token']);
+
+      // Set the access token on the API object to use it in later calls
+      spotifyApi.setAccessToken(data.body['access_token']);
+      spotifyApi.setRefreshToken(data.body['refresh_token']);
+
+      res.redirect('/');
+    })
+    .catch((e) => {
+      console.error(e);
+    });
+});
 
 // set all routes to /api/
 const router = express.Router();
+
+router.get('/spotify', async (req, res) => {
+  const scopes = ['user-read-private', 'playlist-modify-public'];
+
+  authorizeURL = spotifyApi.createAuthorizeURL(scopes);
+  res.redirect(authorizeURL);
+})
+
 
 router.get('/r/:sub', async (req, res) => {
   const LENGTH = req.query.length*2 || 50;
