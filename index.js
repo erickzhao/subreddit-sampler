@@ -85,14 +85,16 @@ router.get('/r/:sub', async (req, res) => {
   userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
 
   try {
+    // attempt to find all tracks on spotify
     const spotifyTracks = await Promise.all(
       posts.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
     );
 
     tracks = spotifyTracks
       .reduce((acc,val) => {
-        const firstTrack = _.head(val.body.tracks.items);
-        if (firstTrack && firstTrack.type === 'track') {
+        const firstTrack = _.head(val.body.tracks.items); // only get first result
+        if (firstTrack && firstTrack.type === 'track') { // only get tracks
+          // extract relevant data
           const trackInfo = _.pick(firstTrack, ['name', 'uri']);
           trackInfo.artists = firstTrack.artists.map(a => a.name);
           acc.push(trackInfo);
@@ -100,6 +102,7 @@ router.get('/r/:sub', async (req, res) => {
         return acc;
       }, []);
 
+    // do playlist stuff here
     const trackIds = tracks.map(t => t.uri);
     const id = (await userSpotifyApi.getMe()).body.id;
     const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
@@ -107,8 +110,7 @@ router.get('/r/:sub', async (req, res) => {
   } catch (e) {
     console.error(e);
   }
-
-  console.log(tracks);
+  
   return res.json(tracks);
 });
 
