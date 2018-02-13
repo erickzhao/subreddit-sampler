@@ -11,7 +11,7 @@ dotenv.config();
 
 const app = express();
 const spotifyApi = new SpotifyWebApi({
-  redirectUri : 'http://localhost:5000/callback',
+  redirectUri : 'http://pacific-taiga-11583.herokuapp.com/callback',
   clientId : process.env.SPOTIFY_CLIENT,
   clientSecret: process.env.SPOTIFY_SECRET
 });
