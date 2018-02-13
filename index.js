@@ -53,6 +53,7 @@ router.get('/r/:sub', async (req, res) => {
   const LENGTH = 20;
   let after;
   let posts = [];
+  let tracks = [];
   await setRedditToken();
 
   // no subreddit, return empty array
@@ -72,28 +73,34 @@ router.get('/r/:sub', async (req, res) => {
   }
 
   const userSpotifyApi = new SpotifyWebApi();
-  console.log(req.headers['authorization'].split(' ')[1]);
   userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
 
   try {
     const spotifyTracks = await Promise.all(
       posts.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
     );
-    const trackIds = spotifyTracks
-      .map(t => (t.body.tracks))
-      .filter(t => t.total > 0)
-      .map(t => _.head(t.items))
-      .filter(t => t.type === 'track')
-      .map(t => t.uri);
-      
-    const id = (await userSpotifyApi.getMe()).body.id;
-    const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
-    await userSpotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
+
+    tracks = spotifyTracks
+      .reduce((acc,val) => {
+        const firstTrack = _.head(val.body.tracks.items);
+        if (firstTrack && firstTrack.type === 'track') {
+          const trackInfo = _.pick(firstTrack, ['name', 'uri']);
+          trackInfo.artists = firstTrack.artists.map(a => a.name);
+          acc.push(trackInfo);
+        }
+        return acc;
+      }, []);
+
+    // const trackIds = tracks.map(t => t.uri);
+    // const id = (await userSpotifyApi.getMe()).body.id;
+    // const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
+    // await userSpotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
   } catch (e) {
     console.error(e);
   }
 
-  return res.json(posts);
+  console.log(tracks);
+  return res.json(tracks);
 });
 
 const setRedditToken = async () => {
