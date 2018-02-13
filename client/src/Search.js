@@ -17,9 +17,10 @@ class Search extends Component {
       <div>
         <form>
           <label>
-          Search for /r/ 
+          Let's sample from from /r/ 
             <input type="text" value={this.state.value} onChange={this.props.onChange}/>
-            <Button label="GO" onClick={this.props.onSearch}/>
+            <br/>
+            <Button label="Generate Playlist" onClick={this.props.onSearch}/>
           </label>
         </form>
       </div>

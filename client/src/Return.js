@@ -4,7 +4,7 @@ import Button from './Button';
 const Return = ({subreddit, onReturn}) => (
   <div>
     <Button onClick={onReturn} label="BACK"/>
-    Listing information for /r/{subreddit}
+    Sample generated from /r/{subreddit}.
   </div>
 )
 

@@ -38,7 +38,7 @@ class ResultsWrapper extends Component {
 
     const trackList = tracks.map((t) =>
       <li>
-        {t[0]} - {t[1]}
+        {t.artists.join(', ')} - {t.name}
       </li>
     )
     return (
