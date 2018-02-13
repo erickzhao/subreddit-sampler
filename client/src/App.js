@@ -45,7 +45,7 @@ class App extends Component {
 
     return (
       <div className="App">
-        <h1>fictional-octo-disco</h1>
+        <h1>Subreddit Sampler</h1>
         {
           Object.keys(tokens).length ?
           <SearchWrapper token={tokens['access_token']}/> :

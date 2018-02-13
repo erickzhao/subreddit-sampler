@@ -1,0 +1,13 @@
+input {
+  margin-bottom: 30px;
+  background: transparent;
+  border-bottom: 2px solid white;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  margin-left: 2px;
+  color: white;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  caret-color: white;
+}
