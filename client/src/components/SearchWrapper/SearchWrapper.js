@@ -13,6 +13,10 @@ class SearchWrapper extends Component {
       isSearched: false
     }
   }
+  
+  // Since we are managing state locally,
+  // need to pass down functions to modify parent
+  // state from child.
 
   handleSearch = (event) => {
     this.setState({ isSearched: true });

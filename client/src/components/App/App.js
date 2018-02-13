@@ -13,7 +13,17 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const hash = window.location.hash
+    // Get hash elements passed into URL.
+    // Will be empty on initial load, but will be passed back
+    // after Spotify authorization loop.
+    const hash = this.getHashElements(window.location.hash);
+    window.location.hash = '';
+    this.setState({tokens: hash});
+  }
+
+  // Gets key:val pairings from ?key=val&key=val&key=val
+  getHashElements = (hash) => {
+    return hash
     .substring(1)
     .split('&')
     .reduce((acc, val) => {
@@ -23,10 +33,10 @@ class App extends Component {
       }
       return acc;
     }, {});
-    window.location.hash = '';
-    this.setState({tokens: hash});
   }
 
+  // Gets authorization URL from server and redirects user
+  // to Spotify authentication page
   handleAuthenticate = () => {
     fetch('/authorize')
       .then((data) => {

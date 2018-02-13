@@ -21,6 +21,7 @@ class ResultsWrapper extends Component {
       });
   }
 
+  // Get list of Spotify tracks matching a subreddit
   fetchTracks = (sub) => {
     return fetch(`/api/r/${sub}`, {
       method: 'GET',

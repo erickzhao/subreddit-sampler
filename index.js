@@ -16,14 +16,13 @@ const spotifyApi = new SpotifyWebApi({
   clientSecret: process.env.SPOTIFY_SECRET
 });
 
-let spotifyId = '';
-
+// callback from redirect URI after Spotify authorized
 app.get('/callback', async (req, res) => {
   const code = req.query.code; // Read the authorization code from the query parameters
   let token;
+  // Grab exchange code for access token.
   try {
     token = await spotifyApi.authorizationCodeGrant(code);
-
     console.log('The token expires in ' + token.body['expires_in']);
     console.log('The access token is ' + token.body['access_token']);
     console.log('The refresh token is ' + token.body['refresh_token']);
@@ -31,6 +30,9 @@ app.get('/callback', async (req, res) => {
   } catch(e) {
     console.error(e);
   }
+  // If everything goes well, refresh the page with token displayed in URL hash.
+  // Client-side logic will handle storing the token so each user has their own
+  // token that accesses permissions to their own account.
   if (token) {
     res.redirect(`/#access_token=${token.body['access_token']}&refresh_token=${token.body['refresh_token']}`);
   } else {
@@ -39,28 +41,34 @@ app.get('/callback', async (req, res) => {
   
 });
 
+// Initiate Spotify authorization loop
 app.get('/authorize', (req, res) => {
+  // scope: read user profile and edit their public playlists.
   const scopes = ['user-read-private', 'playlist-modify-public'];
 
+  // generate an authorization URL from which we get a code
   authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.json({url: authorizeURL});
 })
 
-// set all routes to /api/
+// set API routes to /api/
 const router = express.Router();
 
+// Get spotify tracks based on upvotes in subreddit
+// SIDE EFFECT: will also generate corresponding spotify playlist
 router.get('/r/:sub', async (req, res) => {
-  const LENGTH = 20;
+  const LENGTH = 20; // default number of potential tracks to fetch
   let after;
   let posts = [];
   let tracks = [];
-  await setRedditToken();
+  await setRedditToken(); // always refresh reddit token
 
   // no subreddit, return empty array
   if (!req.params.sub) {
     return res.json(posts);
   }
 
+  // keep fetching candidate tracks until we get enough
   while (posts.length < LENGTH) {
     try {
       const data = await getSubredditData(req.params.sub, after);
@@ -72,6 +80,7 @@ router.get('/r/:sub', async (req, res) => {
     }
   }
 
+  // use token generated earlier to have instance-specific API wrapper
   const userSpotifyApi = new SpotifyWebApi();
   userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
 
@@ -103,6 +112,7 @@ router.get('/r/:sub', async (req, res) => {
   return res.json(tracks);
 });
 
+// sets reddit access token in process.env
 const setRedditToken = async () => {
   let token;
   try {
@@ -124,6 +134,7 @@ const setRedditToken = async () => {
   process.env.REDDIT_TOKEN = token && token.data && token.data.access_token;
 }
 
+// fetches top posts from this year
 const getSubredditData = async (sub, after) => {
   let data;
   try {
@@ -140,29 +151,25 @@ const getSubredditData = async (sub, after) => {
   return data.data.data;
 }
 
+// filter out posts to get songs
 const filterPosts = (posts) => {
   // store whitelisted domains in object for O(1) access
+  // these domains typically have music on them
   const DOMAINS = {
     'youtube.com': true,
     'soundcloud.com': true,
     'youtu.be': true
   }
   return posts
-    .filter(post => DOMAINS[post.data.domain])
-    .map(post => getArtistTitle(post.data.title)) // parse artist/title
-    .filter(post => post); // remove artist/title not found links
+  .filter(post => DOMAINS[post.data.domain]) //domain whitelist
+  .map(post => getArtistTitle(post.data.title)) // parse artist/title
+  .filter(post => post); // remove artist/title not found links
 }
 
 app.use('/api', router);
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
-
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
-// app.get('*', (req, res) => {
-//   // res.sendFile(path.join(__dirname + '/client/build/index.html'));
-// });
 
 const port = process.env.PORT || 5000;
 app.listen(port);
