@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import Search from './Search';
-import Return from './Return';
-import ResultsWrapper from './ResultsWrapper';
+import Search from '../Search/Search';
+import Return from '../Return/Return';
+import ResultsWrapper from '../ResultsWrapper/ResultsWrapper';
 
 class SearchWrapper extends Component {
   // Initialize state

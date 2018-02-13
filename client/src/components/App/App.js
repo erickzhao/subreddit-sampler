@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
-import SearchWrapper from './SearchWrapper';
-import Authenticator from './Authenticator';
+import SearchWrapper from '../SearchWrapper/SearchWrapper';
+import Authenticator from '../Authenticator/Authenticator';
 
 class App extends Component {
   constructor(props) {

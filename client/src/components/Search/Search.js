@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './Search.css';
-import Button from './Button';
+import Button from '../Button/Button';
 
 class Search extends Component {
 
