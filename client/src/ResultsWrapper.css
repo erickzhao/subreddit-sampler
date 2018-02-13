@@ -1,0 +1,25 @@
+#track-listing {
+  width: 600px;
+  text-align: left;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.list--header {
+  text-transform: uppercase;
+  color: rgb(63, 63, 63);
+}
+
+.list--title {
+  max-width: 400px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.list--artist {
+  max-width: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

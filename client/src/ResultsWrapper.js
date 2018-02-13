@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './ResultsWrapper.css'
 
 class ResultsWrapper extends Component {
 
@@ -37,9 +38,10 @@ class ResultsWrapper extends Component {
     const { isLoaded, tracks } = this.state;
 
     const trackList = tracks.map((t) =>
-      <li>
-        {t.artists.join(', ')} - {t.name}
-      </li>
+      <tr key={t.uri}>
+        <td className="list--title">{t.name}</td>
+        <td className="list--artist">{t.artists.join(', ')}</td>
+      </tr>
     )
     return (
       <div>
@@ -47,7 +49,13 @@ class ResultsWrapper extends Component {
         !isLoaded &&
           <h1>LOADING</h1>
         }
-        <ul>{trackList}</ul>
+        <table id="track-listing">
+        <tr>
+          <th className="list--header">Title</th>
+          <th className="list--header">Artist</th>
+        </tr>
+          {trackList}
+        </table>
       </div>
     )
   }
