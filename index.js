@@ -9,9 +9,10 @@ const _ = require('lodash');
 // grab super secret stuff from .env file
 dotenv.config();
 
+//TODO: PROCESS.ENV CHANGE REDIRECT URI
 const app = express();
 const spotifyApi = new SpotifyWebApi({
-  redirectUri : 'http://pacific-taiga-11583.herokuapp.com/callback',
+  redirectUri : process.env.APP_CALLBACK,
   clientId : process.env.SPOTIFY_CLIENT,
   clientSecret: process.env.SPOTIFY_SECRET
 });
