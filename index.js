@@ -9,7 +9,6 @@ const _ = require('lodash');
 // grab super secret stuff from .env file
 dotenv.config();
 
-//TODO: PROCESS.ENV CHANGE REDIRECT URI
 const app = express();
 const spotifyApi = new SpotifyWebApi({
   redirectUri : process.env.APP_CALLBACK,
