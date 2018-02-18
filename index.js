@@ -61,6 +61,7 @@ router.get('/r/:sub', async (req, res) => {
   let after;
   let posts = [];
   let tracks = [];
+  let uri;
   await setRedditToken(); // always refresh reddit token
 
   // no subreddit, return empty array
@@ -106,12 +107,18 @@ router.get('/r/:sub', async (req, res) => {
     const trackIds = tracks.map(t => t.uri);
     const id = (await userSpotifyApi.getMe()).body.id;
     const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
+    uri = playlist.body.uri;
     await userSpotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
+
   } catch (e) {
     console.error(e);
+    res.status(500).json({ error: 'An error occurred while processing the Spotify API' });
   }
-  
-  return res.json(tracks);
+
+  return res.json({
+    tracks: tracks,
+    uri: uri
+  });
 });
 
 // sets reddit access token in process.env

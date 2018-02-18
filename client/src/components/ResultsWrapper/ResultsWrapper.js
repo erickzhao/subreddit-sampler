@@ -14,7 +14,7 @@ class ResultsWrapper extends Component {
   componentDidMount() {
     this.fetchTracks(this.props.subreddit)
       .then((res) => {
-        this.setState({isLoaded: true, tracks: res});
+        this.setState({isLoaded: true, tracks: res.tracks});
       })
       .catch((err) => {
         console.error(err);
