@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Search from '../Search/Search';
-import Return from '../Return/Return';
 import ResultsWrapper from '../ResultsWrapper/ResultsWrapper';
 
 class SearchWrapper extends Component {
@@ -41,10 +40,7 @@ class SearchWrapper extends Component {
           !isSearched ? 
           <Search subreddit={subreddit} onChange={this.handleChangeInSearch} onSearch={this.handleSearch}/>
           :
-          <div>
-            <Return subreddit={subreddit} onReturn={this.handleReturn}/>
-            <ResultsWrapper token={token} subreddit={subreddit}/>
-          </div>
+          <ResultsWrapper onReturn={this.handleReturn} token={token} subreddit={subreddit}/>
         }
       </div>
     );

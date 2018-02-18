@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Return from '../Return/Return';
 import './ResultsWrapper.css'
 
 class ResultsWrapper extends Component {
@@ -7,14 +8,15 @@ class ResultsWrapper extends Component {
     super(props);
     this.state = {
       isLoaded: false,
-      tracks: []
+      tracks: [],
+      uri: null
     }
   }
 
   componentDidMount() {
     this.fetchTracks(this.props.subreddit)
       .then((res) => {
-        this.setState({isLoaded: true, tracks: res.tracks});
+        this.setState({isLoaded: true, tracks: res.tracks, uri: res.uri});
       })
       .catch((err) => {
         console.error(err);
@@ -36,7 +38,8 @@ class ResultsWrapper extends Component {
   }
 
   render() {
-    const { isLoaded, tracks } = this.state;
+    const { isLoaded, tracks, uri } = this.state;
+    const { subreddit, onReturn } = this.props;
 
     const trackList = tracks.map((t) =>
       <tr key={t.uri}>
@@ -46,6 +49,7 @@ class ResultsWrapper extends Component {
     )
     return (
       <div>
+        <Return subreddit={subreddit} onReturn={onReturn} uri={uri}/>
         <h2>Generated playlist for /r/{subreddit}:</h2>
         {
         !isLoaded &&
