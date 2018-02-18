@@ -46,6 +46,7 @@ class ResultsWrapper extends Component {
     )
     return (
       <div>
+        <h2>Generated playlist for /r/{subreddit}:</h2>
         {
         !isLoaded &&
           <h1>LOADING</h1>
