@@ -14,7 +14,7 @@ class ResultsWrapper extends Component {
   }
 
   componentDidMount() {
-    this.fetchTracks(this.props.subreddit)
+    this.generatePlaylist(this.props.subreddit)
       .then((res) => {
         this.setState({isLoaded: true, tracks: res.tracks, uri: res.uri});
       })
@@ -24,7 +24,7 @@ class ResultsWrapper extends Component {
   }
 
   // Get list of Spotify tracks matching a subreddit
-  fetchTracks = (sub) => {
+  generatePlaylist = (sub) => {
     return fetch(`/api/r/${sub}`, {
       method: 'GET',
       headers: {
