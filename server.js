@@ -11,8 +11,8 @@ dotenv.config();
 
 const app = express();
 const spotifyApi = new SpotifyWebApi({
-  redirectUri : process.env.APP_CALLBACK,
-  clientId : process.env.SPOTIFY_CLIENT,
+  redirectUri: process.env.APP_CALLBACK,
+  clientId: process.env.SPOTIFY_CLIENT,
   clientSecret: process.env.SPOTIFY_SECRET
 });
 
@@ -27,7 +27,7 @@ app.get('/callback', async (req, res) => {
     console.log('The access token is ' + token.body['access_token']);
     console.log('The refresh token is ' + token.body['refresh_token']);
 
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   }
   // If everything goes well, refresh the page with token displayed in URL hash.
@@ -38,7 +38,7 @@ app.get('/callback', async (req, res) => {
   } else {
     res.redirect('/');
   }
-  
+
 });
 
 // Initiate Spotify authorization loop
@@ -48,7 +48,9 @@ app.get('/authorize', (req, res) => {
 
   // generate an authorization URL from which we get a code
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
-  res.json({url: authorizeURL});
+  res.json({
+    url: authorizeURL
+  });
 })
 
 // set API routes to /api/
@@ -59,40 +61,39 @@ const router = express.Router();
 router.get('/r/:sub', async (req, res) => {
   const LENGTH = 20; // default number of potential tracks to fetch
   let after;
-  let posts = [];
   let tracks = [];
   let uri;
   await setRedditToken(); // always refresh reddit token
-
-  // no subreddit, return empty array
-  if (!req.params.sub) {
-    return res.json(posts);
-  }
-
-  // keep fetching candidate tracks until we get enough
-  while (posts.length < LENGTH) {
-    try {
-      const data = await getSubredditData(req.params.sub, after);
-      const newPosts = filterPosts(data.children);
-      posts.push(...newPosts);
-      after = data.after;
-    } catch(e) {
-      console.error(e);
-    }
-  }
 
   // use token generated earlier to have instance-specific API wrapper
   const userSpotifyApi = new SpotifyWebApi();
   userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
 
-  try {
-    // attempt to find all tracks on spotify
-    const spotifyTracks = await Promise.all(
-      posts.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
-    );
+  // no subreddit, return empty array
+  if (!req.params.sub) {
+    return res.json(tracks);
+  }
 
-    tracks = spotifyTracks
-      .reduce((acc,val) => {
+  // keep fetching tracks until we get enough
+  while (tracks.length < LENGTH) {
+    const postQueue = []; // create queue of reddit posts
+    try {
+      // grab a page of candidate posts and find the possible music links
+      const data = await getSubredditData(req.params.sub, after);
+      postQueue.push(...getPotentialMusicLinks(data.children));
+      after = data.after;
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      // attempt to find all tracks from queue on Spotify
+      const spotifyTracks = await Promise.all(
+        postQueue.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
+      );
+
+      // use reducer to accumulate track info
+      const reducer = (acc, val) => {
         const firstTrack = _.head(val.body.tracks.items); // only get first result
         if (firstTrack && firstTrack.type === 'track') { // only get tracks
           // extract relevant data
@@ -101,18 +102,32 @@ router.get('/r/:sub', async (req, res) => {
           acc.push(trackInfo);
         }
         return acc;
-      }, []);
+      }
+      tracks.push(...spotifyTracks.reduce(reducer, []));
+      postQueue.length = 0; // empty post queue
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  tracks.length = LENGTH; // trim playlist so we have a neat number of tracks
+
+  try {
 
     // do playlist stuff here
     const trackIds = tracks.map(t => t.uri);
     const id = (await userSpotifyApi.getMe()).body.id;
-    const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub}`, {public: true});
+    const playlist = await userSpotifyApi.createPlaylist(id, `/r/${req.params.sub} sampler`, {
+      public: true
+    });
     uri = playlist.body.uri;
     await userSpotifyApi.addTracksToPlaylist(id, playlist.body.id, trackIds);
 
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: 'An error occurred while processing the Spotify API' });
+    res.status(500).json({
+      error: 'An error occurred while processing the Spotify API'
+    });
   }
 
   return res.json({
@@ -137,7 +152,7 @@ const setRedditToken = async () => {
       },
       data: "grant_type=client_credentials"
     });
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   }
   process.env.REDDIT_TOKEN = token && token.data && token.data.access_token;
@@ -154,14 +169,14 @@ const getSubredditData = async (sub, after) => {
         'Authorization': `Bearer ${process.env.REDDIT_TOKEN}`
       }
     });
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   }
   return data.data.data;
 }
 
 // filter out posts to get songs
-const filterPosts = (posts) => {
+const getPotentialMusicLinks = (posts) => {
   // store whitelisted domains in object for O(1) access
   // these domains typically have music on them
   const DOMAINS = {
@@ -170,9 +185,9 @@ const filterPosts = (posts) => {
     'youtu.be': true
   }
   return posts
-  .filter(post => DOMAINS[post.data.domain]) //domain whitelist
-  .map(post => getArtistTitle(post.data.title)) // parse artist/title
-  .filter(post => post); // remove artist/title not found links
+    .filter(post => DOMAINS[post.data.domain]) //domain whitelist
+    .map(post => getArtistTitle(post.data.title)) // parse artist/title
+    .filter(post => post); // remove artist/title not found links
 }
 
 app.use('/api', router);
