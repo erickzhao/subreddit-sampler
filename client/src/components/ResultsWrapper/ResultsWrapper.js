@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Return from '../Return/Return';
+import loader from './audio.svg';
 import './ResultsWrapper.css'
 
 class ResultsWrapper extends Component {
@@ -50,18 +51,25 @@ class ResultsWrapper extends Component {
     return (
       <div>
         <Return subreddit={subreddit} onReturn={onReturn} uri={uri}/>
-        <h2>Generated playlist for /r/{subreddit}:</h2>
         {
-        !isLoaded &&
-          <h1>LOADING</h1>
+        !isLoaded ?
+          <div>
+            <h2>Generating playlist for /r/{subreddit}...</h2>
+            <img src={loader}/>
+          </div>
+          :
+          <div>
+            <h2>Generated playlist for /r/{subreddit}:</h2>
+            <table id="track-listing">
+              <tr>
+                <th className="list--header">Title</th>
+                <th className="list--header">Artist</th>
+              </tr>
+              {trackList}
+            </table>
+          </div>
         }
-        <table id="track-listing">
-        <tr>
-          <th className="list--header">Title</th>
-          <th className="list--header">Artist</th>
-        </tr>
-          {trackList}
-        </table>
+        
       </div>
     )
   }
