@@ -47,7 +47,7 @@ app.get('/authorize', (req, res) => {
   const scopes = ['user-read-private', 'playlist-modify-public'];
 
   // generate an authorization URL from which we get a code
-  authorizeURL = spotifyApi.createAuthorizeURL(scopes);
+  const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.json({url: authorizeURL});
 })
 
