@@ -18,8 +18,8 @@
     "nodemon": "^1.14.12"
   },
   "scripts": {
-    "start:dev": "nodemon index.js",
-    "start": "node index.js",
+    "start:dev": "nodemon server.js",
+    "start": "node server.js",
     "heroku-postbuild": "cd client && yarn --production=false && yarn run build"
   }
 }
