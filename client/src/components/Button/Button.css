@@ -6,6 +6,7 @@ button {
   text-transform: uppercase;
   font-weight: bold;
   color: white;
+  margin: 20px;
 }
 
 button:hover {
