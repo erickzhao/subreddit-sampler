@@ -9,7 +9,10 @@ const Return = ({uri, onReturn}) => {
   return (
   <div>
     <Button onClick={onReturn} label="Return"/>
-    <Button onClick={onClick} label="View on Spotify Client"/>
+    {
+      uri &&
+      <Button onClick={onClick} label="View on Spotify Client"/>
+    }
   </div>
   )
 }

@@ -59,17 +59,26 @@ class ResultsWrapper extends Component {
           </div>
           :
           <div>
-            <h2>Generated playlist for /r/{subreddit}:</h2>
-            <table id="track-listing">
-              <tr>
-                <th className="list--header">Title</th>
-                <th className="list--header">Artist</th>
-              </tr>
-              {trackList}
-            </table>
+            {
+              (tracks.length > 0) ?
+              <div>
+                <h2>Generated playlist for /r/{subreddit}:</h2>
+                <table id="track-listing">
+                  <tr>
+                    <th className="list--header">Title</th>
+                    <th className="list--header">Artist</th>
+                  </tr>
+                  {trackList}
+                </table>
+              </div>
+              :
+              <div>
+                <h2>ERROR: Failed to generate playlist for /r/{subreddit}</h2>
+                <h3>Please check if the subreddit exists and has music links.</h3>
+              </div>
+            }
           </div>
         }
-        
       </div>
     )
   }
