@@ -93,7 +93,6 @@ router.get('/r/:sub', async (req, res) => {
       console.error(e);
     }
     (postQueue.length === 0) ? failCounter++ : failCounter = 0;
-    console.log(postQueue);
 
     try {
       // attempt to find all tracks from queue on Spotify
@@ -213,4 +212,4 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 const port = process.env.PORT || 5000;
 app.listen(port);
 
-console.log(`fictional-octo-disco listening on ${port}`);
+console.log(`Subreddit Sampler listening on ${port}`);
