@@ -59,7 +59,8 @@ const router = express.Router();
 // Get spotify tracks based on upvotes in subreddit
 // SIDE EFFECT: will also generate corresponding spotify playlist
 router.get('/r/:sub', async (req, res) => {
-  const LENGTH = 20; // default number of potential tracks to fetch
+  const LENGTH = 20; // default number of tracks to fetch
+  const FAIL_LIMIT = 10; // number of empty pages before abort
   let after;
   let tracks = [];
   let uri;
@@ -69,13 +70,19 @@ router.get('/r/:sub', async (req, res) => {
   const userSpotifyApi = new SpotifyWebApi();
   userSpotifyApi.setAccessToken(req.headers['authorization'].split(' ')[1]);
 
-  // no subreddit, return empty array
+  // no subreddit in parameters, return empty array
   if (!req.params.sub) {
-    return res.json(tracks);
+    return res.json({
+      tracks: [],
+      uri: null
+    });
   }
 
   // keep fetching tracks until we get enough
-  while (tracks.length < LENGTH) {
+  // OR, if we failed enough times, abort mission
+  let failCounter = 0;
+
+  while (tracks.length < LENGTH && failCounter < FAIL_LIMIT) {
     const postQueue = []; // create queue of reddit posts
     try {
       // grab a page of candidate posts and find the possible music links
@@ -85,6 +92,8 @@ router.get('/r/:sub', async (req, res) => {
     } catch (e) {
       console.error(e);
     }
+    (postQueue.length === 0) ? failCounter++ : failCounter = 0;
+    console.log(postQueue);
 
     try {
       // attempt to find all tracks from queue on Spotify
@@ -110,10 +119,16 @@ router.get('/r/:sub', async (req, res) => {
     }
   }
 
+  if (tracks.length < LENGTH) {
+    return res.json({
+      tracks: [],
+      uri: null
+    });
+  }
+
   tracks.length = LENGTH; // trim playlist so we have a neat number of tracks
 
   try {
-
     // do playlist stuff here
     const trackIds = tracks.map(t => t.uri);
     const id = (await userSpotifyApi.getMe()).body.id;
@@ -185,9 +200,9 @@ const getPotentialMusicLinks = (posts) => {
     'youtu.be': true
   }
   return posts
-    .filter(post => DOMAINS[post.data.domain]) //domain whitelist
-    .map(post => getArtistTitle(post.data.title)) // parse artist/title
-    .filter(post => post); // remove artist/title not found links
+  .filter(post => DOMAINS[post.data.domain]) //domain whitelist
+  .map(post => getArtistTitle(post.data.title)) // parse artist/title
+  .filter(post => post); // remove artist/title not found links
 }
 
 app.use('/api', router);
