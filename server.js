@@ -81,6 +81,7 @@ router.get('/r/:sub', async (req, res) => {
   // keep fetching tracks until we get enough
   // OR, if we failed enough times, abort mission
   let failCounter = 0;
+  const numSongsForArtist = {};
 
   while (tracks.length < LENGTH && failCounter < FAIL_LIMIT) {
     const postQueue = []; // create queue of reddit posts
@@ -102,12 +103,20 @@ router.get('/r/:sub', async (req, res) => {
 
       // use reducer to accumulate track info
       const reducer = (acc, val) => {
-        const firstTrack = _.head(val.body.tracks.items); // only get first result
-        if (firstTrack && firstTrack.type === 'track') { // only get tracks
-          // extract relevant data
-          const trackInfo = _.pick(firstTrack, ['name', 'uri']);
+        const firstResult = _.head(val.body.tracks.items); // only get first result
+
+        if (firstResult && firstResult.type === 'track') { // only get tracks
+          const trackInfo = _.pick(firstResult, ['name', 'uri']);
+
           trackInfo.artists = firstTrack.artists.map(a => a.name);
-          acc.push(trackInfo);
+          const mainArtist = trackInfo.artists[0];
+
+          // don't add more than 1 song per artist and remove stupid karaoke versions
+          numSongsForArtist[mainArtist] = numSongsForArtist[mainArtist] || 0;
+          numSongsForArtist[mainArtist]++;
+          if (mainArtist.indexOf('Karaoke') === -1 && numSongsForArtist[mainArtist] <= 1) {
+            acc.push(trackInfo);
+          }
         }
         return acc;
       }
@@ -177,7 +186,7 @@ const getSubredditData = async (sub, after) => {
   let data;
   try {
     data = await axios({
-      url: `https://oauth.reddit.com/r/${sub}/top?limit=100&t=year&after=${after}`,
+      url: `https://oauth.reddit.com/r/${sub}/top?limit=100&t=all&after=${after}`,
       method: 'get',
       headers: {
         'Authorization': `Bearer ${process.env.REDDIT_TOKEN}`
@@ -198,10 +207,13 @@ const getPotentialMusicLinks = (posts) => {
     'soundcloud.com': true,
     'youtu.be': true
   }
+  const TOO_LONG = 40;
+
   return posts
   .filter(post => DOMAINS[post.data.domain]) //domain whitelist
   .map(post => getArtistTitle(post.data.title)) // parse artist/title
-  .filter(post => post); // remove artist/title not found links
+  .filter(post => {
+    return post && post[0].length < TOO_LONG && post[1].length < TOO_LONG}); // remove artist/title not found links
 }
 
 app.use('/api', router);
