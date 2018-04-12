@@ -45,7 +45,7 @@ app.get('/callback', async (req, res) => {
 app.get('/authorize', (req, res) => {
   // scope: read user profile and edit their public playlists.
   const scopes = ['user-read-private', 'playlist-modify-public'];
-
+  
   // generate an authorization URL from which we get a code
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes);
   res.json({
@@ -101,6 +101,8 @@ router.get('/r/:sub', async (req, res) => {
         postQueue.map(p => userSpotifyApi.searchTracks(`${p[0]} ${p[1]}`))
       );
 
+      console.log(spotifyTracks[0]);
+
       // use reducer to accumulate track info
       const reducer = (acc, val) => {
         const firstResult = _.head(val.body.tracks.items); // only get first result
@@ -108,7 +110,7 @@ router.get('/r/:sub', async (req, res) => {
         if (firstResult && firstResult.type === 'track') { // only get tracks
           const trackInfo = _.pick(firstResult, ['name', 'uri']);
 
-          trackInfo.artists = firstTrack.artists.map(a => a.name);
+          trackInfo.artists = firstResult.artists.map(a => a.name);
           const mainArtist = trackInfo.artists[0];
 
           // don't add more than 1 song per artist and remove stupid karaoke versions
